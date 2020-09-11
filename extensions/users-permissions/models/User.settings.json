@@ -65,7 +65,7 @@
       "required": true
     },
     "articles": {
-      "via": "user",
+      "via": "author",
       "collection": "article"
     }
   }

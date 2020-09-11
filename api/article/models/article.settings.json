@@ -9,14 +9,12 @@
     "timestamps": true
   },
   "attributes": {
-    "Seo": {
-      "type": "component",
-      "repeatable": false,
-      "component": "shared.seo",
-      "required": true
-    },
     "title": {
       "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text",
       "required": true
     },
     "content": {
@@ -56,7 +54,7 @@
       "plugin": "upload",
       "required": true
     },
-    "user": {
+    "author": {
       "plugin": "users-permissions",
       "model": "user",
       "via": "articles"

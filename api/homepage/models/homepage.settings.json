@@ -9,21 +9,15 @@
     "timestamps": true
   },
   "attributes": {
-    "Seo": {
+    "seo": {
       "type": "component",
       "repeatable": false,
       "component": "shared.seo"
     },
-    "Nav": {
+    "hero": {
       "type": "component",
       "repeatable": false,
-      "component": "decoration.navbar",
-      "required": true
-    },
-    "Hero": {
-      "type": "component",
-      "repeatable": false,
-      "component": "decoration.hero",
+      "component": "sections.hero",
       "required": true
     }
   }

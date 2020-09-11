@@ -7,34 +7,28 @@
     "develop": "strapi develop",
     "start": "strapi start",
     "build": "strapi build",
-    "strapi": "strapi",
-    "heroku-prebuild": "node scripts/postgres-env.js",
-    "heroku-postbuild": "strapi build && node scripts/postinstall.js"
+    "strapi": "strapi"
   },
   "devDependencies": {},
   "dependencies": {
     "fs-extra": "^9.0.1",
     "knex": "<0.20.0",
     "lodash": "^4.17.19",
+    "mime-types": "^2.1.27",
     "pg": "^8.3.0",
     "sqlite3": "latest",
-    "strapi": "3.1.1",
-    "strapi-admin": "3.1.1",
-    "strapi-connector-bookshelf": "3.1.1",
-    "strapi-plugin-content-manager": "3.1.1",
-    "strapi-plugin-content-type-builder": "3.1.1",
-    "strapi-plugin-email": "3.1.1",
-    "strapi-plugin-upload": "3.1.1",
-    "strapi-plugin-users-permissions": "3.1.1",
-    "strapi-provider-upload-cloudinary": "^3.1.1",
-    "strapi-utils": "3.1.1",
-    "unzip-stream": "^0.3.0"
+    "strapi": "3.1.4",
+    "strapi-admin": "3.1.4",
+    "strapi-connector-bookshelf": "3.1.4",
+    "strapi-plugin-content-manager": "3.1.4",
+    "strapi-plugin-content-type-builder": "3.1.4",
+    "strapi-plugin-email": "3.1.4",
+    "strapi-plugin-upload": "3.1.4",
+    "strapi-plugin-users-permissions": "3.1.4",
+    "strapi-utils": "3.1.4"
   },
   "author": {
     "name": "A Strapi developer"
-  },
-  "strapi": {
-    "uuid": "STRAPI-STARTER-GATSBY-BLOG"
   },
   "engines": {
     "node": ">=10.0.0",

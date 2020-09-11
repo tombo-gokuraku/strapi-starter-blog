@@ -1,182 +1,151 @@
 "use strict";
-require("dotenv").config();
-/**
- * An asynchronous bootstrap function that runs before
- * your application gets started.
- *
- * This gives you an opportunity to set up your data model,
- * run jobs, or perform some special logic.
- *
- * See more details here: https://strapi.io/documentation/3.0.0-beta.x/concepts/configurations.html#bootstrap
- */
+
 const fs = require("fs");
 const path = require("path");
-const { categories, homepages, users, articles } = require("../../seed/seed");
-
-
-const findPublicRole = async () => {
-  const result = await strapi
-    .query("role", "users-permissions")
-    .findOne({ type: "public" });
-  return result;
-};
-
-const setDefaultPermissions = async () => {
-  const role = await findPublicRole();
-  const permissions_applications = await strapi
-    .query("permission", "users-permissions")
-    .find({ type: "application", role: role.id });
-  const permissions_users = await strapi
-    .query("permission", "users-permissions")
-    .find({ type: "users-permissions", controller: "user", action: "find", role: role.id });
-  await Promise.all(
-    permissions_applications.map(p =>
-      strapi
-        .query("permission", "users-permissions")
-        .update({ id: p.id }, { enabled: true })
-    ),
-    permissions_users.map(p =>
-      strapi
-        .query("permission", "users-permissions")
-        .update({ id: p.id }, { enabled: true })
-    )
-  );
-};
+const mime = require("mime-types");
+const { categories, homepage, users, articles } = require("../../seed/data.json");
 
 const isFirstRun = async () => {
   const pluginStore = strapi.store({
     environment: strapi.config.environment,
     type: "type",
-    name: "setup"
+    name: "setup",
   });
   const initHasRun = await pluginStore.get({ key: "initHasRun" });
   await pluginStore.set({ key: "initHasRun", value: true });
   return !initHasRun;
 };
 
-const getFilesizeInBytes = filepath => {
-  var stats = fs.statSync(filepath);
-  var fileSizeInBytes = stats["size"];
+async function setPublicPermissions(newPermissions) {
+  // Find the ID of the public role
+  const publicRole = await strapi
+    .query("role", "users-permissions")
+    .findOne({ type: "public" });
+
+  // List all available permissions
+  const publicPermissions = await strapi
+    .query("permission", "users-permissions")
+    .find({ type: "application", role: publicRole.id });
+
+  // Update permission to match new config
+  const controllersToUpdate = Object.keys(newPermissions);
+  const updatePromises = publicPermissions
+    .filter((permission) => {
+      // Only update permissions included in newConfig
+      if (!controllersToUpdate.includes(permission.controller)) {
+        return false;
+      }
+      if (!newPermissions[permission.controller].includes(permission.action)) {
+        return false;
+      }
+      return true;
+    })
+    .map((permission) => {
+      // Enable the selected permissions
+      return strapi
+        .query("permission", "users-permissions")
+        .update({ id: permission.id }, { enabled: true })
+    });
+  await Promise.all(updatePromises);
+}
+
+function getFileSizeInBytes(filePath) {
+  const stats = fs.statSync(filePath);
+  const fileSizeInBytes = stats["size"];
   return fileSizeInBytes;
 };
 
-const createSeedData = async (files) => {
+function getFileData(fileName) {
+  const filePath = `./seed/uploads/${fileName}`;
 
-  const handleFiles = (data, model) => {
-    var substring = "";
+  // Parse the file metadata
+  const size = getFileSizeInBytes(filePath);
+  const ext = fileName.split(".").pop();
+  const mimeType = mime.lookup(ext);
 
-    if(model == "user") {
-      substring = data.email;
-    }
-    else if(model == "article"){
-      substring = data.slug;
-    }
-    else {
-      substring = data.Seo.shareImage.alt
-    }
-
-    var file = files.find(x => x.includes(substring));
-    file = `./seed/uploads/${file}`;
-
-    const size = getFilesizeInBytes(file);
-    const array = file.split(".");
-    const ext = array[array.length - 1]
-    const mimeType = `image/.${ext}`;
-    const image = {
-      path: file,
-      name: `${substring}.${ext}`,
-      size,
-      type: mimeType
-    };
-    return image
+  return {
+    path: filePath,
+    name: fileName,
+    size,
+    type: mimeType,
   }
+}
 
+// Create an entry and attach files if there are any
+async function createEntry({ model, entry, files }) {
+  try {
+    const createdEntry = await strapi.query(model).create(entry);
+    if (files) {
+      await strapi.entityService.uploadFiles(createdEntry, files, {
+        model,
+      });
+    }
+  } catch (e) {
+    console.log('model', entry, e);
+  }
+}
 
-  const categoriesPromises = categories.map(({ ...rest }) => {
-    return strapi.services.category.create({
-      ...rest
+async function importCategories() {
+  return Promise.all(categories.map((category) => {
+    return createEntry({ model: "category", entry: category });
+  }));
+}
+
+async function importHomepage() {
+  const files = {
+    "seo.shareImage": getFileData("default-image.png")
+  };
+  await createEntry({ model: "homepage", entry: homepage, files });
+}
+
+async function importUsers() {
+  return Promise.all(users.map(async (user) => {
+    const files = {
+      image: getFileData(`${user.email}.jpg`),
+    };
+    return createEntry({
+      model: "plugins::users-permissions.user",
+      entry: user,
+      files,
     });
-  });
+  }));
+}
 
-  const homepagePromises = homepages.map(async homepage => {
-    const image = handleFiles(homepage, "homepage")
+async function importArticles() {
+  return Promise.all(articles.map((article) => {
     const files = {
-      "Seo.shareImage.image": image
+      image: getFileData(`${article.slug}.jpg`),
     };
+    return createEntry({ model: "article", entry: article, files });
+  }));
+}
 
-    try {
-      const entry = await strapi.query("homepage").create(homepage);
-
-      if (files) {
-        await strapi.entityService.uploadFiles(entry, files, {
-          model: "homepage"
-        });
-      }
-    } catch (e) {
-      console.log(e);
-    }
-
+async function importSeedData() {
+  // Allow read of application content types
+  await setPublicPermissions({
+    global: ['find'],
+    homepage: ['find'],
+    article: ['find', 'findone'],
+    category: ['find', 'findone'],
   });
 
-  const usersPromises = users.map(async user => {
-    const image = handleFiles(user, "user")
-    const files = {
-      image
-    };
-
-    try {
-      const entry = await strapi.query("user", "users-permissions").create(user);
-
-      if (files) {
-        await strapi.entityService.uploadFiles(entry, files, {
-          model: "plugins::users-permissions.user"
-        });
-      }
-    } catch (e) {
-      console.log(e);
-    }
-
-  });
-
-  const articlesPromises = articles.map(async article => {
-    const image = handleFiles(article, "article")
-    const files = {
-      image,
-      "Seo.shareImage.image": image
-    };
-
-    try {
-      const entry = await strapi.query('article').create(article);
-
-      if (files) {
-        await strapi.entityService.uploadFiles(entry, files, {
-          model: 'article'
-        });
-      }
-    } catch (e) {
-      console.log(e);
-    }
-
-  });
-
-  await Promise.all(categoriesPromises);
-  await Promise.all(homepagePromises);
-  await Promise.all(usersPromises);
-  await Promise.all(articlesPromises);
-};
+  // Create all entries
+  await importCategories();
+  await importHomepage();
+  await importUsers();
+  await importArticles();
+}
 
 module.exports = async () => {
-    const shouldSetDefaultPermissions = await isFirstRun();
-    if (shouldSetDefaultPermissions) {
-      try {
-        console.log("Setting up your starter...");
-        const files = fs.readdirSync(`./seed/uploads`);
-        await setDefaultPermissions();
-        await createSeedData(files);
-        console.log("Ready to go");
-      } catch (e) {
-        console.log(e);
-      }
-
+  const shouldImportSeedData = await isFirstRun();
+  if (shouldImportSeedData) {
+    try {
+      console.log('Setting up your starter...');
+      await importSeedData();
+      console.log('Ready to go');
+    } catch (error) {
+      console.log('Could not import seed data');
+      console.error(error);
     }
+  }
 };
