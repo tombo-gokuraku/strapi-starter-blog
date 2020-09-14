@@ -3,7 +3,13 @@
 const fs = require("fs");
 const path = require("path");
 const mime = require("mime-types");
-const { categories, homepage, users, articles } = require("../../seed/data.json");
+const {
+  categories,
+  homepage,
+  users,
+  articles,
+  global
+} = require("../../seed/data.json");
 
 const isFirstRun = async () => {
   const pluginStore = strapi.store({
@@ -93,7 +99,7 @@ async function importCategories() {
 
 async function importHomepage() {
   const files = {
-    "seo.shareImage": getFileData("default-image.png")
+    "seo.shareImage": getFileData("default-image.png"),
   };
   await createEntry({ model: "homepage", entry: homepage, files });
 }
@@ -120,6 +126,14 @@ async function importArticles() {
   }));
 }
 
+async function importGlobal() {
+  const files = {
+    "favicon": getFileData("favicon.png"),
+    "defaultSeo.shareImage": getFileData("default-image.png"),
+  };
+  return createEntry({ model: "global", entry: global, files });
+}
+
 async function importSeedData() {
   // Allow read of application content types
   await setPublicPermissions({
@@ -134,6 +148,7 @@ async function importSeedData() {
   await importHomepage();
   await importUsers();
   await importArticles();
+  await importGlobal();
 }
 
 module.exports = async () => {

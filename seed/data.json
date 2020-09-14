@@ -146,5 +146,14 @@
       "description": "Pizza is so delicious, specially four cheese pizza",
       "image": null
     }
-  ]
+  ],
+  "global": {
+    "siteName":"Strapi Blog",
+    "defaultSeo":{
+      "metaTitle":"Page",
+      "metaDescription":"A blog made with Strapi",
+      "shareImage":null
+    },
+    "favicon":null
+  }
 }
