@@ -11,7 +11,7 @@ const {
   global
 } = require("../../seed/data.json");
 
-const isFirstRun = async () => {
+async function isFirstRun() {
   const pluginStore = strapi.store({
     environment: strapi.config.environment,
     type: "type",
@@ -31,7 +31,10 @@ async function setPublicPermissions(newPermissions) {
   // List all available permissions
   const publicPermissions = await strapi
     .query("permission", "users-permissions")
-    .find({ type: "application", role: publicRole.id });
+    .find({
+      type: ["users-permissions", "application"],
+      role: publicRole.id,
+    });
 
   // Update permission to match new config
   const controllersToUpdate = Object.keys(newPermissions);
@@ -141,6 +144,7 @@ async function importSeedData() {
     homepage: ['find'],
     article: ['find', 'findone'],
     category: ['find', 'findone'],
+    user: ['find', 'findone'],
   });
 
   // Create all entries
@@ -153,6 +157,7 @@ async function importSeedData() {
 
 module.exports = async () => {
   const shouldImportSeedData = await isFirstRun();
+
   if (shouldImportSeedData) {
     try {
       console.log('Setting up your starter...');
