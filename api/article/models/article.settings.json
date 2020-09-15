@@ -55,9 +55,8 @@
       "required": true
     },
     "author": {
-      "plugin": "users-permissions",
-      "model": "user",
-      "via": "articles"
+      "via": "articles",
+      "model": "writer"
     }
   }
 }

@@ -31,28 +31,16 @@
       "title": "My blog"
     }
   },
-  "users": [
+  "writers": [
     {
-      "username": "David Doe",
+      "name": "David Doe",
       "email": "daviddoe@strapi.io",
-      "provider": "local",
-      "confirmed": true,
-      "blocked": false,
-      "role": {
-        "id": 2
-      },
-      "image": null
+      "picture": null
     },
     {
-      "username": "Sarah Baker",
+      "name": "Sarah Baker",
       "email": "sarahbaker@strapi.io",
-      "provider": "local",
-      "confirmed": true,
-      "blocked": false,
-      "role": {
-        "id": 2
-      },
-      "image": null
+      "picture": null
     }
   ],
   "articles": [

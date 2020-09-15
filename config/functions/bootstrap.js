@@ -6,7 +6,7 @@ const mime = require("mime-types");
 const {
   categories,
   homepage,
-  users,
+  writers,
   articles,
   global
 } = require("../../seed/data.json");
@@ -107,14 +107,14 @@ async function importHomepage() {
   await createEntry({ model: "homepage", entry: homepage, files });
 }
 
-async function importUsers() {
-  return Promise.all(users.map(async (user) => {
+async function importWriters() {
+  return Promise.all(writers.map(async (writer) => {
     const files = {
-      image: getFileData(`${user.email}.jpg`),
+      picture: getFileData(`${writer.email}.jpg`),
     };
     return createEntry({
-      model: "plugins::users-permissions.user",
-      entry: user,
+      model: "writer",
+      entry: writer,
       files,
     });
   }));
@@ -144,13 +144,13 @@ async function importSeedData() {
     homepage: ['find'],
     article: ['find', 'findone'],
     category: ['find', 'findone'],
-    user: ['find', 'findone'],
+    writer: ['find', 'findone'],
   });
 
   // Create all entries
   await importCategories();
   await importHomepage();
-  await importUsers();
+  await importWriters();
   await importArticles();
   await importGlobal();
 }
