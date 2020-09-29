@@ -16,6 +16,7 @@
     "knex": "<0.20.0",
     "lodash": "^4.17.19",
     "mime-types": "^2.1.27",
+    "parse-database-url": "^0.3.0",
     "pg": "^8.3.0",
     "sqlite3": "latest",
     "strapi": "3.1.6",
@@ -27,6 +28,7 @@
     "strapi-plugin-graphql": "3.1.6",
     "strapi-plugin-upload": "3.1.6",
     "strapi-plugin-users-permissions": "3.1.6",
+    "strapi-provider-upload-aws-s3": "^3.1.6",
     "strapi-utils": "3.1.6"
   },
   "author": {
